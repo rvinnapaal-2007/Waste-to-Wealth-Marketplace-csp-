@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="band">
+  <h1>Sell farm waste. Buy it direct.</h1>
+  <p>Farmers list crop residue. Pulp plate makers, biobriquette plants and compost units send requests.</p>
+  {% if me_role %}
+  <a class="btn amber" href="{{ url_for('dashboard') }}">Go to my dashboard</a>
+  <a class="btn ghost" style="color:#fff;border-color:#fff" href="{{ url_for('listings') }}">Browse waste</a>
+  {% else %}
+  <div class="roles">
+    <div class="role-card">
+      <h2>🚜 I am a farmer</h2><p>List bagasse, straw, husk or shells and get buyer requests.</p>
+      <a class="btn" href="{{ url_for('auth', mode='signup', role='farmer') }}">Sign up</a>
+      <a class="btn ghost" href="{{ url_for('auth', mode='login', role='farmer') }}">Log in</a>
+    </div>
+    <div class="role-card">
+      <h2>🏭 I am a buyer</h2><p>Find waste in bulk and contact the farmer directly.</p>
+      <a class="btn amber" href="{{ url_for('auth', mode='signup', role='buyer') }}">Sign up</a>
+      <a class="btn ghost" href="{{ url_for('auth', mode='login', role='buyer') }}">Log in</a>
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<div class="stats">
+  <div><b id="s-list">-</b>listings</div><div><b id="s-kg">-</b>kg available</div>
+  <div><b id="s-f">-</b>farmers</div><div><b id="s-b">-</b>buyers</div><div><b id="s-inq">-</b>requests</div>
+</div>
+
+<h2>How it works</h2>
+<div class="steps">
+  <div><b>1</b><br><strong>Farmer lists waste</strong><p>Type, quantity, price and pickup village.</p></div>
+  <div><b>2</b><br><strong>Buyer sends a request</strong><p>Logged-in buyers contact the farmer.</p></div>
+  <div><b>3</b><br><strong>They agree and collect</strong><p>The farmer calls the buyer and marks it sold.</p></div>
+</div>
+
+<h2>Available by waste type</h2>
+<div id="bars" class="bars"></div>
+
+<h2>What each waste becomes</h2>
+<div class="chips">
+  {% for w, use in uses.items() %}<div class="chip"><b>{{ icons[w] }} {{ w }}</b><span>{{ use }}</span></div>{% endfor %}
+</div>
+
+<script>
+fetch("/api/stats").then(r => r.json()).then(d => {
+  const set = (id, v) => document.getElementById(id).textContent = v;
+  set("s-list", d.listings); set("s-kg", Math.round(d.total_kg).toLocaleString("en-IN"));
+  set("s-f", d.farmers); set("s-b", d.buyers); set("s-inq", d.inquiries);
+  const max = Math.max(1, ...d.by_type.map(t => t.kg));
+  document.getElementById("bars").innerHTML = d.by_type.map(t =>
+    `<div class="bar"><span>${t.waste_type}</span><i style="width:${t.kg / max * 100}%"></i><em>${Math.round(t.kg).toLocaleString("en-IN")} kg</em></div>`).join("") || "<p class='muted'>No listings yet.</p>";
+});
+</script>
+{% endblock %}

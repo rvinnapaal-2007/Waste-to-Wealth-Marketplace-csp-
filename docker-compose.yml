@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16
+    container_name: agri-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin
+      POSTGRES_DB: agri_marketplace
+    ports:
+      - "5433:5432"          # host 5433 -> container 5432 (5432 is used by the RAG project)
+    volumes:
+      - agri_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d agri_marketplace"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: .
+    container_name: agri-web
+    ports:
+      - "5000:5000"
+    environment:
+      PGHOST: db             # the database service above
+      PGPORT: "5432"         # port inside Docker's network
+      PGDATABASE: agri_marketplace
+      PGUSER: postgres
+      PGPASSWORD: Admin
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  agri_pgdata:

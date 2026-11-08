@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Browse waste{% endblock %}
+{% block content %}
+<h2 style="margin-top:.6rem">Available agri-waste</h2>
+<form method="get" class="toolbar" id="f">
+  <input id="q" type="search" placeholder="Search by village, farmer or keyword" aria-label="Search">
+  <select name="type" onchange="this.form.submit()" aria-label="Waste type">
+    <option value="">All waste types</option>
+    {% for w in types %}<option {{ 'selected' if w == selected }}>{{ w }}</option>{% endfor %}
+  </select>
+  <select id="sort" aria-label="Sort">
+    <option value="new">Newest first</option><option value="pl">Price: low to high</option>
+    <option value="ph">Price: high to low</option><option value="qty">Most quantity</option>
+  </select>
+</form>
+<p class="count"><span id="count">{{ rows|length }}</span> listings</p>
+<div class="grid" id="grid">
+{% for r in rows %}
+<article class="lcard" data-id="{{ r.id }}" data-price="{{ r.price_per_kg }}" data-qty="{{ r.quantity_kg }}"
+         data-text="{{ (r.waste_type ~ ' ' ~ r.village ~ ' ' ~ r.farmer_name ~ ' ' ~ (r.description or ''))|lower }}">
+  <div class="lhead">
+    <div><span class="ico">{{ icons.get(r.waste_type, '♻️') }}</span><h3>{{ r.waste_type }}</h3></div>
+    <p class="price">Rs {{ '%.2f'|format(r.price_per_kg) }}<small> / kg</small></p>
+  </div>
+  <div class="meta">
+    <span>Quantity<br><b>{{ '{:,.0f}'.format(r.quantity_kg) }} kg</b></span>
+    <span>Village<br><b>{{ r.village }}</b></span>
+    <span>Farmer<br><b>{{ r.farmer_name }}</b></span>
+    <span>Available from<br><b>{{ r.available_from or 'Now' }}</b></span>
+  </div>
+  {% if r.description %}<p class="muted" style="margin:0">{{ r.description }}</p>{% endif %}
+  <div class="use">Used for: {{ types.get(r.waste_type, '') }}</div>
+  {% if me_role == 'buyer' %}
+  <details><summary>Contact this farmer</summary>
+    <form method="post" action="{{ url_for('inquire', lid=r.id) }}" class="stack">
+      <textarea name="message" placeholder="Quantity needed, pickup location, price offer"></textarea>
+      <button>Send request</button>
+    </form></details>
+  {% elif me_role == 'farmer' %}<p class="muted" style="margin:0">Log in as a buyer to contact farmers.</p>
+  {% else %}<a class="btn" href="{{ url_for('auth', mode='login', role='buyer') }}">Log in as buyer to contact</a>{% endif %}
+</article>
+{% else %}<p class="empty">No waste listed for this type yet.</p>{% endfor %}
+</div>
+<script>
+const q=document.getElementById('q'),s=document.getElementById('sort'),grid=document.getElementById('grid');
+function apply(){const t=q.value.toLowerCase().trim(),k=s.value,cards=[...grid.querySelectorAll('.lcard')];
+  cards.forEach(c=>c.hidden=!c.dataset.text.includes(t));
+  cards.sort((a,b)=>k=='pl'?a.dataset.price-b.dataset.price:k=='ph'?b.dataset.price-a.dataset.price:k=='qty'?b.dataset.qty-a.dataset.qty:b.dataset.id-a.dataset.id).forEach(c=>grid.appendChild(c));
+  document.getElementById('count').textContent=cards.filter(c=>!c.hidden).length}
+q.addEventListener('input',apply);s.addEventListener('change',apply);
+</script>
+{% endblock %}

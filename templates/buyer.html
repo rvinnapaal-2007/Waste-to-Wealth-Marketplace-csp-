@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Buyer dashboard{% endblock %}
+{% block content %}
+<h2>Welcome, {{ me.name }}</h2>
+<p class="muted">{{ me.buyer_type }}{% if me.company %} &middot; {{ me.company }}{% endif %} &middot; {{ me.phone }} &middot; {{ me.email }}</p>
+<div class="stats"><div><b>{{ sent|length }}</b>requests sent</div></div>
+<p><a class="btn" href="{{ url_for('listings') }}">Browse available waste</a></p>
+
+<h3>My requests ({{ sent|length }})</h3>
+<div class="scroll"><table>
+  <tr><th>Waste</th><th>Kg</th><th>Rs/kg</th><th>Farmer</th><th>Village</th><th>Farmer phone</th><th>Status</th><th>Date</th></tr>
+  {% for s in sent %}
+  <tr><td>{{ s.waste_type }}</td><td>{{ '{:,.0f}'.format(s.quantity_kg) }}</td><td>{{ s.price_per_kg }}</td>
+      <td>{{ s.farmer_name }}</td><td>{{ s.village }}</td><td>{{ s.farmer_phone }}</td>
+      <td><span class="badge {{ s.status|lower }}">{{ s.status }}</span></td><td>{{ s.created_at.strftime('%d %b %Y') }}</td></tr>
+  {% else %}<tr><td colspan="8">No requests yet. Browse waste and contact a farmer.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

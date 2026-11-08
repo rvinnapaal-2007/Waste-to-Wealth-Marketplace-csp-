@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ mode|capitalize }} as {{ role }}{% endblock %}
+{% block content %}
+<div class="auth-wrap {{ role }}">
+  <aside class="auth-side">
+    <span class="ico">{{ '🚜' if role == 'farmer' else '🏭' }}</span>
+    <h2>{{ 'For farmers' if role == 'farmer' else 'For buyers' }}</h2>
+    <ul>
+    {% if role == 'farmer' %}
+      <li>List your crop residue in a minute</li><li>Get requests with the buyer's phone number</li><li>Mark listings sold when done</li>
+    {% else %}
+      <li>Browse waste by type, price and village</li><li>Search and sort listings</li><li>Contact the farmer directly</li>
+    {% endif %}
+    </ul>
+  </aside>
+  <div class="auth">
+    <h2>{{ 'Create your ' ~ role ~ ' account' if mode == 'signup' else 'Log in as ' ~ role }}</h2>
+    <form method="post" class="stack">
+      {% if mode == 'signup' %}<label>Full name <input name="name" value="{{ form.get('name','') }}" required></label>{% endif %}
+      <label>Email <input type="email" name="email" value="{{ form.get('email','') }}" required></label>
+      {% if mode == 'signup' %}
+      <label>Phone (10 digits) <input name="phone" pattern="[0-9]{10}" value="{{ form.get('phone','') }}" required></label>
+        {% if role == 'farmer' %}
+        <label>Village <input name="village" value="{{ form.get('village','') }}" required></label>
+        {% else %}
+        <label>Company (optional) <input name="company" value="{{ form.get('company','') }}"></label>
+        <label>Buyer type <select name="buyer_type" required>
+          {% for b in buyer_types %}<option {{ 'selected' if form.get('buyer_type') == b }}>{{ b }}</option>{% endfor %}</select></label>
+        {% endif %}
+      {% endif %}
+      <label>Password <input type="password" name="password" minlength="{{ 6 if mode == 'signup' else 1 }}" required></label>
+      {% if mode == 'signup' %}<label>Confirm password <input type="password" name="confirm" required></label>{% endif %}
+      <button class="btn">{{ 'Create account' if mode == 'signup' else 'Log in' }}</button>
+    </form>
+    <p class="switch">
+      {% if mode == 'signup' %}Already registered? <a href="{{ url_for('auth', mode='login', role=role) }}">Log in</a>
+      {% else %}New here? <a href="{{ url_for('auth', mode='signup', role=role) }}">Create an account</a>{% endif %}
+      <br>{% set other = 'buyer' if role == 'farmer' else 'farmer' %}
+      <a href="{{ url_for('auth', mode=mode, role=other) }}">{{ mode|capitalize }} as {{ other }} instead</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

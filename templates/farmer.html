@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Farmer dashboard{% endblock %}
+{% block content %}
+<h2>Welcome, {{ me.name }}</h2>
+<p class="muted">{{ me.village }} &middot; {{ me.phone }} &middot; {{ me.email }}</p>
+<div class="stats">
+  <div><b>{{ mine|length }}</b>my listings</div>
+  <div><b>{{ mine|selectattr('status','equalto','Available')|list|length }}</b>available now</div>
+  <div><b>{{ reqs|length }}</b>buyer requests</div>
+</div>
+
+<details class="panel" {{ 'open' if not mine }}>
+<summary>+ List new waste</summary>
+<form method="post" action="{{ url_for('new_listing') }}" class="grid2">
+  <label>Type of waste
+    <select name="waste_type" required>{% for w in types %}<option>{{ w }}</option>{% endfor %}</select></label>
+  <label>Quantity (kg) <input type="number" name="quantity_kg" min="1" step="any" required></label>
+  <label>Expected price (Rs per kg) <input type="number" name="price_per_kg" min="0" step="any" required></label>
+  <label>Available from <input type="date" name="available_from"></label>
+  <label class="wide">Details <textarea name="description" placeholder="Dry or wet, baled or loose, pickup point"></textarea></label>
+  <button class="btn wide">Publish listing</button>
+</form>
+</details>
+
+<h3>My listings</h3>
+<div class="scroll"><table>
+  <tr><th>Waste</th><th>Kg</th><th>Rs/kg</th><th>Status</th><th>Requests</th><th></th></tr>
+  {% for l in mine %}
+  <tr><td>{{ l.waste_type }}</td><td>{{ '{:,.0f}'.format(l.quantity_kg) }}</td><td>{{ l.price_per_kg }}</td>
+      <td><span class="badge {{ l.status|lower }}">{{ l.status }}</span></td><td>{{ l.n }}</td>
+      <td class="actions">
+        {% if l.status == 'Available' %}<form method="post" action="{{ url_for('listing_action', lid=l.id, action='sold') }}"><button>Mark sold</button></form>{% endif %}
+        <form method="post" action="{{ url_for('listing_action', lid=l.id, action='delete') }}" onsubmit="return confirm('Delete this listing?')"><button>Delete</button></form>
+      </td></tr>
+  {% else %}<tr><td colspan="6">You have not listed anything yet.</td></tr>{% endfor %}
+</table></div>
+
+<h3>Buyer requests</h3>
+<div class="scroll"><table>
+  <tr><th>Buyer</th><th>Company</th><th>Type</th><th>Phone</th><th>For</th><th>Message</th><th>Date</th></tr>
+  {% for i in reqs %}
+  <tr><td>{{ i.buyer_name }}</td><td>{{ i.company }}</td><td>{{ i.buyer_type }}</td><td>{{ i.phone }}</td>
+      <td>{{ i.waste_type }}</td><td>{{ i.message }}</td><td>{{ i.created_at.strftime('%d %b %Y') }}</td></tr>
+  {% else %}<tr><td colspan="7">No requests yet.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

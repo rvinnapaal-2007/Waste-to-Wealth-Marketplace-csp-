@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+{% if not authed %}
+<h2>Admin login</h2>
+<form method="post" class="stack narrow">
+  <input type="password" name="password" placeholder="Password" required>
+  <button class="btn">Log in</button>
+</form>
+{% else %}
+<h2>All listings <a class="small" href="{{ url_for('admin_logout') }}">Log out</a></h2>
+<div class="scroll"><table>
+  <tr><th>ID</th><th>Farmer</th><th>Phone</th><th>Village</th><th>Waste</th><th>Kg</th><th>Rs/kg</th><th>Status</th><th></th></tr>
+  {% for l in listings %}
+  <tr><td>{{ l.id }}</td><td>{{ l.farmer_name }}</td><td>{{ l.phone }}</td><td>{{ l.village }}</td>
+      <td>{{ l.waste_type }}</td><td>{{ '{:,.0f}'.format(l.quantity_kg) }}</td><td>{{ l.price_per_kg }}</td><td>{{ l.status }}</td>
+      <td class="actions">
+        {% if l.status == 'Available' %}<form method="post" action="{{ url_for('admin_action', action='sold', listing_id=l.id) }}"><button>Mark sold</button></form>{% endif %}
+        <form method="post" action="{{ url_for('admin_action', action='delete', listing_id=l.id) }}" onsubmit="return confirm('Delete this listing?')"><button>Delete</button></form>
+      </td></tr>
+  {% endfor %}
+</table></div>
+<h2>Buyer requests</h2>
+<div class="scroll"><table>
+  <tr><th>Buyer</th><th>Company</th><th>Type</th><th>Phone</th><th>For</th><th>Message</th><th>Time</th></tr>
+  {% for i in inquiries %}
+  <tr><td>{{ i.buyer_name }}</td><td>{{ i.company }}</td><td>{{ i.buyer_type }}</td><td>{{ i.phone }}</td>
+      <td>{{ i.waste_type }} ({{ i.farmer_name }})</td><td>{{ i.message }}</td><td>{{ i.created_at }}</td></tr>
+  {% else %}<tr><td colspan="7">No requests yet.</td></tr>{% endfor %}
+</table></div>
+<h2>Farmers</h2>
+<div class="scroll"><table>
+  <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Village</th><th>Joined</th></tr>
+  {% for u in farmers %}<tr><td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone }}</td><td>{{ u.village }}</td><td>{{ u.created_at.strftime('%d %b %Y') }}</td></tr>
+  {% else %}<tr><td colspan="6">No farmers yet.</td></tr>{% endfor %}
+</table></div>
+<h2>Buyers</h2>
+<div class="scroll"><table>
+  <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Type</th><th>Joined</th></tr>
+  {% for u in buyers %}<tr><td>{{ u.id }}</td><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ u.phone }}</td><td>{{ u.company }}</td><td>{{ u.buyer_type }}</td><td>{{ u.created_at.strftime('%d %b %Y') }}</td></tr>
+  {% else %}<tr><td colspan="7">No buyers yet.</td></tr>{% endfor %}
+</table></div>
+{% endif %}
+{% endblock %}

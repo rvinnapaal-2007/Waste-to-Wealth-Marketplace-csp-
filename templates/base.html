@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Waste to Wealth Marketplace{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="{{ url_for('index') }}">🌾 Waste to Wealth <span>Marketplace</span></a>
+  <nav>
+    <a href="{{ url_for('listings') }}">Browse waste</a>
+    {% if me_role %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <span class="who">{{ me_name }}<em>{{ me_role }}</em></span>
+      <a class="navbtn" href="{{ url_for('logout') }}">Log out</a>
+    {% else %}
+      <a href="{{ url_for('auth', mode='login', role='farmer') }}">Farmer login</a>
+      <a class="navbtn" href="{{ url_for('auth', mode='login', role='buyer') }}">Buyer login</a>
+    {% endif %}
+    <a href="{{ url_for('admin') }}">Admin</a>
+  </nav>
+</header>
+<main>
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, m in msgs %}<p class="flash {{ cat }}">{{ m }}</p>{% endfor %}
+{% endwith %}
+{% block content %}{% endblock %}
+</main>
+<footer>CSP mini project: From Waste to Wealth, Rural Agricultural Sustainability</footer>
+<script>setTimeout(()=>document.querySelectorAll('.flash.ok').forEach(e=>e.hidden=true),5000)</script>
+</body>
+</html>
